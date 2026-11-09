@@ -1,15 +1,14 @@
-# SvelteKit Container Starter
+# Angular Container Starter
 
-Minimal SvelteKit app (`sv create`, minimal template) configured with `@sveltejs/adapter-node`, ready to run as a Node server in a container. The server honors the `HOST` and `PORT` env vars (defaults to port 3000; the Dockerfile sets 8080).
+The official Angular starter, unchanged, plus a production-ready multi-stage Dockerfile
+(Node 22 build stage, nginx 1.27 serving the build on port 8080 with SPA fallback,
+gzip, and immutable caching for hashed assets).
 
-Run locally with Docker:
+Run it locally:
 
-```sh
-docker build -t sveltekit-starter .
-docker run -p 8080:8080 sveltekit-starter
-# open http://localhost:8080
-```
+    docker build -t angular-container-starter .
+    docker run --rm -p 8080:8080 angular-container-starter
 
-Deploy guide: see the Back4app blog post for deploying this repo on Back4app Containers (placeholder — link coming with the tutorial).
+Then open http://localhost:8080.
 
-Measurements for this exact commit are in `docs/evidence/local-measurements-2026-11-06.md`.
+Deploy guide: (coming) on the Back4app blog.
