@@ -1,4 +1,4 @@
-# Local measurements — SolidJS (Vite) container starter — 2026-11-06
+# Local measurements — Preact (Vite) container starter — 2026-11-06
 
 ## Environment
 
@@ -31,23 +31,23 @@
 
 ## Scaffold
 
-    npm create vite@latest solidjs-container-starter -- --template solid
+    npm create vite@latest preact-container-starter -- --template preact
 
-Versions (package.json): solid-js ^1.9.18, vite ^8.3.6, vite-plugin-solid ^2.11.15.
+Versions (package.json): preact ^11.1.1, vite ^8.3.6, @preact/preset-vite ^2.10.6.
 
 ## Numbers
 
 | Measurement | Command | Result |
 |---|---|---|
-| npm ci | `/usr/bin/time -p npm ci` | **1.43 s** (75 packages) |
-| npm run build | `/usr/bin/time -p npm run build` | **2.47 s** wall (Vite: "built in 503ms") |
-| dist size | `du -sk dist` | **76 KB** |
-| docker build | `/usr/bin/time -p docker build -t solidjs-container-starter .` | **8.31 s** (bases already pulled) |
+| npm ci | `/usr/bin/time -p npm ci` | **1.38 s** (89 packages) |
+| npm run build | `/usr/bin/time -p npm run build` | **2.41 s** wall (Vite: "built in 473ms") |
+| dist size | `du -sk dist` | **80 KB** |
+| docker build | `/usr/bin/time -p docker build -t preact-container-starter .` | **10.00 s** (bases already pulled) |
 | image size | `docker images` | **76 MB** |
-| HTML document gzipped | `curl -s -H 'Accept-Encoding: gzip' -o /dev/null -w '%{size_download}' http://localhost:8491/` | **475 bytes** |
-| First-load JS gzipped | `/assets/index-CDaOe7bN.js` (only script referenced) | **5,665 bytes** (raw 15.03 kB) |
+| HTML document gzipped | `curl -s -H 'Accept-Encoding: gzip' -o /dev/null -w '%{size_download}' http://localhost:8491/` | **473 bytes** |
+| First-load JS gzipped | `/assets/index-e_QwmrLR.js` (only script referenced) | **7,335 bytes** (raw 17.97 kB) |
 
-With nginx's default `gzip_comp_level 1` the bundle transferred 6,183 bytes;
+With nginx's default `gzip_comp_level 1` the bundle transferred 7,941 bytes;
 nginx.conf sets `gzip_comp_level 6`.
 
 Verified: SPA fallback returns 200 on deep routes; `/assets/*` served with
