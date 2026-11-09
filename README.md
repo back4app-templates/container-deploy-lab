@@ -1,14 +1,17 @@
-# React (Vite) Container Starter
+# Astro Container Starter
 
-The official React (Vite) starter, unchanged, plus a production-ready multi-stage Dockerfile
-(Node 22 build stage, nginx 1.27 serving the build on port 8080 with SPA fallback,
-gzip, and immutable caching for hashed assets).
+Minimal Astro app (`create astro`, minimal template) configured for **SSR** with `@astrojs/node` in standalone mode: `astro build` emits a Node server at `dist/server/entry.mjs` that honors `HOST` and `PORT` env vars. This repo ships in SSR mode so it deploys as a server container.
 
-Run it locally:
+Astro's default is a **static** build: remove `output: 'server'` and the `adapter` from `astro.config.mjs` and `astro build` emits plain HTML into `dist/` for any static host instead. Both modes are commented in the config.
 
-    docker build -t react-container-starter .
-    docker run --rm -p 8080:8080 react-container-starter
+Run locally with Docker:
 
-Then open http://localhost:8080.
+```sh
+docker build -t astro-starter .
+docker run -p 8080:8080 astro-starter
+# open http://localhost:8080
+```
 
-Deploy guide: (coming) on the Back4app blog.
+Deploy guide: see the Back4app blog post for deploying this repo on Back4app Containers (placeholder — link coming with the tutorial).
+
+Measurements for this exact commit are in `docs/evidence/local-measurements-2026-11-06.md`.
