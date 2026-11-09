@@ -1,24 +1,54 @@
-# Local measurements — 2026-11-06
+# Local measurements — SolidJS (Vite) container starter — 2026-11-06
 
-Machine: Apple M5, macOS 26.5.2. Docker: colima VM (docker 29.5.2, linux/aarch64, 4 CPUs, 8 GB) — Docker Desktop was not installed on the work machine, so the docker CLI + colima were installed via Homebrew.
-Node v22.23.4 / npm 10.9.9 (host builds; images use `node:22-alpine`).
+## Environment
 
-Packages: @builder.io/qwik@1.20.3, @builder.io/qwik-city@1.20.3, express@4.22.0, compression@1.8.2, vite@7.3.1, undici@7.30.2, dotenv@16.6.1.
+- Machine: Apple Silicon Mac (arm64), macOS (Darwin 25.5.0)
+- Container runtime: Docker CLI 29.9.3 with colima (macOS Virtualization.framework).
+  Note: the plan said "Docker Desktop", but Docker Desktop was not installed on this
+  machine; `brew install colima docker` + `colima start --cpu 4 --memory 8` was used
+  instead. Image sizes and build behaviour are identical; wall times may differ
+  slightly from Docker Desktop.
+- Host Node: v25.8.1, npm 11.11.0 (the Docker build stage uses node:22-alpine)
+- Date: 2026-11-06
 
-| Metric | Value | Command |
+## Method notes (apply to every number below)
+
+- The scaffold does not ship a `package-lock.json`, so `npm install` was run once to
+  generate it (the lockfile is committed; the Dockerfile's `npm ci` needs it), then
+  `node_modules` was deleted and `npm ci` timed with `/usr/bin/time -p` (warm npm cache).
+- `npm run build` timed the same way; the "real" line is the wall time.
+- `docker build` wall times are with the base images (node:22-alpine, nginx:1.27-alpine)
+  already pulled. The very first build on a clean machine also pulls both bases
+  (observed: 56.3 s total for the first build of the day vs ~8-10 s after).
+- First-load JS: container run with `docker run --rm -p 8491:8080 <image>`, `/` fetched,
+  every `<script src>` in the HTML fetched with
+  `curl -s -H 'Accept-Encoding: gzip' -o /dev/null -w '%{size_download}'`, bytes summed.
+- nginx gzip: the stock `gzip_comp_level` default (1) transferred ~14-18 % more bytes
+  than the build tool's reported gzip sizes; this repo's nginx.conf sets
+  `gzip_comp_level 6`, and the numbers below are measured with level 6.
+- Port 8090 was busy on this machine; measurements used host port 8491. If curl returns
+  a page that is not your app, check `lsof -nP -iTCP:<port> -sTCP:LISTEN` first.
+
+## Scaffold
+
+    npm create vite@latest solidjs-container-starter -- --template solid
+
+Versions (package.json): solid-js ^1.9.18, vite ^8.3.6, vite-plugin-solid ^2.11.15.
+
+## Numbers
+
+| Measurement | Command | Result |
 |---|---|---|
-| npm ci | 2.9 s | `rm -rf node_modules && time npm ci` |
-| npm run build | 6.3–6.9 s | `time npm run build` (client + SSR server + type-check + lint) |
-| Output folders | 188 KB (`dist/`) + 148 KB (`server/`) | `du -sh dist server` |
-| docker build (no cache) | 56.5–56.7 s | `time docker build --no-cache -t qwik-container-starter .` |
-| Image size | 249 MB | `docker images --format '{{.Size}}'` |
-| First-load JS (gzip) | 23,846 B (~23.3 KB) across 3 preloaded files | see method below |
+| npm ci | `/usr/bin/time -p npm ci` | **1.43 s** (75 packages) |
+| npm run build | `/usr/bin/time -p npm run build` | **2.47 s** wall (Vite: "built in 503ms") |
+| dist size | `du -sk dist` | **76 KB** |
+| docker build | `/usr/bin/time -p docker build -t solidjs-container-starter .` | **8.31 s** (bases already pulled) |
+| image size | `docker images` | **76 MB** |
+| HTML document gzipped | `curl -s -H 'Accept-Encoding: gzip' -o /dev/null -w '%{size_download}' http://localhost:8491/` | **475 bytes** |
+| First-load JS gzipped | `/assets/index-CDaOe7bN.js` (only script referenced) | **5,665 bytes** (raw 15.03 kB) |
 
-First-load JS method: `docker run -p 8091:8080 …`, `curl http://localhost:8091/`, collect every `.js` URL referenced from the page (script `src` + `rel="modulepreload"` links), then curl each with `Accept-Encoding: gzip` and sum `size_download`. Caveat to be fair to Qwik: these three chunks are *preloaded* by the page; Qwik's resumability means they are not executed until interaction, and the only JS executed on load is the small inline qwikloader.
+With nginx's default `gzip_comp_level 1` the bundle transferred 6,183 bytes;
+nginx.conf sets `gzip_comp_level 6`.
 
-Notes / pitfalls:
-- `npm create qwik@latest` has no "basic" template: the choices are `empty` (the standard starter app with routing — used here), `playground`, `e2e-library`, `library`. Non-interactive scaffold: `npm create qwik@latest empty ./qwik-container-starter -- --installDeps`.
-- `npm run qwik add express` is interactive and dies without a TTY (`ERR_TTY_INIT_FAILED`). Non-interactive flag (undocumented, from the CLI source): `npx qwik add express --skipConfirmation=true`.
-- The generated `src/entry.express.tsx` ships with `app.use(compression())` **commented out** — without it every asset is served raw (the main chunk measured 49.9 KB instead of 20.2 KB). We enabled it.
-- The built `server/entry.express.js` imports `express`, `dotenv/config` and `undici` at runtime, but the scaffold puts `dotenv`, `undici` and `compression` in devDependencies — `npm ci --omit=dev` in the runtime image then crashes. We moved all three to `dependencies`.
-- The Express server listens on `PORT` (default 3000) and binds all interfaces (Express default), so no `HOST` fiddling is needed.
+Verified: SPA fallback returns 200 on deep routes; `/assets/*` served with
+`Cache-Control: public, max-age=31536000, immutable`.
