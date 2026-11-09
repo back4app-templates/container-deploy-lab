@@ -1,3 +1,9 @@
 node_modules
-dist
+build
+.svelte-kit
 .git
+.gitignore
+.vscode
+Dockerfile
+.dockerignore
+README.md
