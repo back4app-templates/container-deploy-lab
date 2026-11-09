@@ -1,23 +1,23 @@
 # Local measurements — 2026-11-06
 
 Machine: Apple M5, macOS 26.5.2. Docker: colima VM (docker 29.5.2, linux/aarch64, 4 CPUs, 8 GB) — Docker Desktop was not installed on the work machine, so the docker CLI + colima were installed via Homebrew.
-Node v22.23.4 / npm 10.9.9 (host builds; images use `node:22-alpine`).
+Node v22.23.4 / npm 10.9.9 (host; images use `node:22-alpine`).
 
-Packages: astro@7.4.7, @astrojs/node@11.1.11.
+Packages: express@5.3.0, compression@1.8.2, htmx.org@2.0.11 (devDependency, used only to vendor `dist/htmx.min.js` into `public/vendor/`).
 
 | Metric | Value | Command |
 |---|---|---|
-| npm ci | 1.1 s | `rm -rf node_modules && time npm ci` |
-| npm run build (SSR mode) | 3.9–4.5 s | `time npm run build` |
-| Output folder | 528 KB (`dist/`) | `du -sh dist` |
-| docker build (no cache) | 57.8 s | `time docker build --no-cache -t astro-container-starter .` |
-| Image size | 583 MB | `docker images --format '{{.Size}}'` |
-| First-load JS (gzip) | **0 bytes** | see method below |
+| npm ci | 0.3 s | `rm -rf node_modules && time npm ci` |
+| npm run build | n/a — no build step | — |
+| App size | 56 KB (`public/`, incl. vendored htmx) + `server.js` | `du -sh public` |
+| docker build (no cache) | 5.4 s | `time docker build --no-cache -t htmx-node-container-starter .` |
+| Image size | 240 MB | `docker images --format '{{.Size}}'` |
+| First-load JS (gzip) | 16,897 B (~16.5 KB) — just `/vendor/htmx.min.js` | see method below |
 
-First-load JS method: `docker run -p 8091:8080 …`, `curl http://localhost:8091/`, collect every `.js` URL referenced from the page (script `src` + `rel="modulepreload"` links), then curl each with `Accept-Encoding: gzip` and sum `size_download`. The minimal Astro page references no JavaScript at all — zero-JS by default is real.
+First-load JS method: `docker run -p 8091:8080 …`, `curl http://localhost:8091/`, collect every `.js` URL referenced from the page, then curl each with `Accept-Encoding: gzip` and sum `size_download`. htmx.min.js 2.0.11 is 52,182 B raw and 16,897 B gzipped; the only script on the page.
 
 Notes / pitfalls:
-- **"standalone" is not self-contained.** With only `dist/` + `package.json` in the runtime image, the server crashed on boot: `ERR_MODULE_NOT_FOUND: Cannot find package 'devalue'`. The @astrojs/node standalone build keeps some imports external, so the runtime stage must run `npm ci --omit=dev`. Since `astro` itself is a production dependency, that pulls the whole framework into the image — hence 583 MB vs ~240 MB for the other starters.
-- `npx astro add node -y` configures the adapter but leaves `output` at the default (`static`). For an always-SSR server we set `output: 'server'` explicitly; without it the minimal app prerenders everything and the Node server just serves static files.
-- The standalone server reads `HOST` and `PORT` env vars; start command is `node ./dist/server/entry.mjs`.
-- Static mode (the Astro default) was kept for the record: removing `output`/`adapter` makes `astro build` emit plain HTML into `dist/` (no Node server).
+- `express.static` does **not** compress: without `app.use(compression())` htmx ships as 51 KB instead of 16.5 KB over the wire. Compression is enabled in `server.js`.
+- htmx is vendored by installing `htmx.org@2.0.11` as an exact-pinned devDependency and copying `node_modules/htmx.org/dist/htmx.min.js` to `public/vendor/` (committed), so the page never hotlinks a CDN.
+- htmx posts forms as `application/x-www-form-urlencoded` — Express needs `express.urlencoded()` (JSON middleware won't see the fields).
+- Express binds all interfaces by default; `HOST`/`PORT` env vars are honored and the image sets `PORT=8080`.

@@ -1,13 +1,12 @@
 # Live deploy — Back4app Containers — 2026-11-09
 
-App: spoke-astro (free plan), created fresh from back4app-templates/container-deploy-lab @ rotation (commit 679c7da = this repo @ 8f75e8d + stamp 7b9b2418-bc60-46ba-9e78-c93f96a52bb5). Port 8080 at creation. SSR mode (Node adapter standalone), server started with node ./dist/server/entry.mjs.
-
-## Timeline
-- ~13:22 UTC creation → 13:24:34 public URL serving the stamp (~2.5 min; the npm ci --omit=dev of the runtime stage dominates, as locally).
+App: spoke-htmx (free plan), created fresh from back4app-templates/container-deploy-lab @ rotation (commit 665c397 = this repo @ a84294b + stamp d7cc2b08-c01e-41f5-9a22-321374cbb19d). Port 8080 at creation. The container runs the Express server itself — no nginx stage.
 
 ## Public URL (client São Paulo; CloudFront edge; fresh deploy)
-- SSR verified: HTML contains the rendered content (<h1>Astro…).
-- **Zero external <script> tags in the served HTML** — the zero-JS-by-default claim held on the live deploy of the minimal template.
-- HTML /: 312 B gzip. TTFB (3 requests, illustrative): 1.375 / 1.174 / 1.204 s.
+- Live at 13:44:42 UTC.
+- GET /fragment: 200 — HTML fragment endpoint serving live.
+- POST /greet (urlencoded form): 200 — the htmx form round trip works on the public URL (express.urlencoded in place).
+- Vendored /vendor/htmx.min.js: 16,897 B gzip transferred (compression() enabled in this repo; express.static alone would serve ~51 KB raw).
+- TTFB on / (3 requests, illustrative): 0.967 / 0.968 / 0.975 s.
 
-Local measurements: docs/evidence/local-measurements-2026-11-06.md (583 MB image explained there: astro as a prod dependency + npm ci --omit=dev requirement of the "standalone" adapter).
+Local measurements: docs/evidence/local-measurements-2026-11-06.md
