@@ -1,4 +1,4 @@
-# Local measurements — Angular container starter — 2026-11-06
+# Local measurements — React (Vite) container starter — 2026-11-06
 
 ## Environment
 
@@ -31,37 +31,27 @@
 
 ## Scaffold
 
-    npx -y @angular/cli@latest new angular-container-starter --defaults --skip-git --style=css --ssr=false
+    npm create vite@latest react-container-starter -- --template react
 
-Versions (package.json): @angular/core ^22.2.0, @angular/cli ^22.2.6, typescript ~6.0.2.
-Angular 22 defaults to vitest + jsdom for unit tests. `--defaults --ssr=false` answers
-every prompt non-interactively (no SSR).
+Versions (package.json): react ^19.3.1, react-dom ^19.3.1, vite ^8.3.6,
+@vitejs/plugin-react ^6.1.2, oxlint ^1.90.0. Note: the Vite 8 React template now ships
+with oxlint and a hero PNG asset — numbers reflect that template, not the older minimal one.
 
 ## Numbers
 
 | Measurement | Command | Result |
 |---|---|---|
-| npm ci | `/usr/bin/time -p npm ci` | **3.96 s** (292 packages) |
-| npm run build | `/usr/bin/time -p npm run build` | **1.63 s** wall ("Application bundle generation complete. [0.841 seconds]") |
-| dist size | `du -sk dist` | **256 KB** |
-| docker build | `/usr/bin/time -p docker build -t angular-container-starter .` | **29.37 s** (bases already pulled; npm ci inside the container dominates) |
+| npm ci | `/usr/bin/time -p npm ci` | **1.37 s** (25 packages) |
+| npm run build | `/usr/bin/time -p npm run build` | **2.60 s** wall (Vite: "built in 607ms") |
+| dist size | `du -sk dist` | **288 KB** (includes 13.05 kB hero PNG) |
+| docker build | `/usr/bin/time -p docker build -t react-container-starter .` | **9.32 s** (no cache, bases pulled); first-ever build incl. base pulls: 56.31 s |
 | image size | `docker images` | **76.3 MB** |
-| HTML document gzipped | `curl -s -H 'Accept-Encoding: gzip' -o /dev/null -w '%{size_download}' http://localhost:8491/` | **437 bytes** |
-| First-load JS gzipped | `/main-3LAEQCWG.js` (only script referenced) | **67,165 bytes** (raw 217.11 kB, Angular's own gzip estimate 59.66 kB) |
+| HTML document gzipped | `curl -s -H 'Accept-Encoding: gzip' -o /dev/null -w '%{size_download}' http://localhost:8491/` | **473 bytes** |
+| First-load JS gzipped | `/assets/index-DSXtc1GT.js` (only script referenced) | **68,557 bytes** (raw 222.44 kB) |
 
-With nginx's default `gzip_comp_level 1` the bundle transferred 79,029 bytes;
-nginx.conf sets `gzip_comp_level 6`.
+Vite's own gzip report for the bundle is 69.28 kB (level ~6); nginx at its default
+`gzip_comp_level 1` served 80,835 bytes — set `gzip_comp_level 6` (done in nginx.conf).
 
-## Angular-specific pitfalls
-
-- Build output is `dist/angular-container-starter/browser/` (project-named subfolder +
-  `browser/`), not `dist/` — the Dockerfile copies from that exact path. A
-  `3rdpartylicenses.txt` sits one level above `browser/` and is not deployed.
-- `index.html` references `main-XXXX.js` with a **relative** src (it relies on
-  `<base href="/">`): fine in browsers, but scripts that concatenate URLs from the
-  HTML must add the leading slash.
-- Hashed `.js`/`.css` land at the web root, not `/assets/`, so the long-cache nginx
-  rule matches `\.(js|css)$` instead of a path prefix.
-
-Verified: SPA fallback returns 200 on deep routes; hashed files served with
-`Cache-Control: public, max-age=31536000, immutable`.
+Verified: `GET /some/deep/route` returns 200 + index.html (SPA fallback), and
+`/assets/*` is served with `Cache-Control: public, max-age=31536000, immutable`
+and `Content-Encoding: gzip`.
