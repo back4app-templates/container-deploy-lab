@@ -1,14 +1,17 @@
-# Lit (Vite) Container Starter
+# HTMX + Node Container Starter
 
-The official Lit (Vite) starter, unchanged, plus a production-ready multi-stage Dockerfile
-(Node 22 build stage, nginx 1.27 serving the build on port 8080 with SPA fallback,
-gzip, and immutable caching for hashed assets).
+A hand-written reference implementation: Express 5 serves one HTML page, and htmx (pinned to **2.0.11**, vendored locally at `public/vendor/htmx.min.js` — no CDN) swaps in server-rendered HTML: a `GET /fragment` endpoint and a `POST /greet` form. No build step, no client framework — the whole app is `server.js` + `public/index.html`.
 
-Run it locally:
+The server honors `HOST` and `PORT` env vars (defaults 0.0.0.0:3000; the Dockerfile sets 8080) and exposes `/healthz`.
 
-    docker build -t lit-container-starter .
-    docker run --rm -p 8080:8080 lit-container-starter
+Run locally with Docker:
 
-Then open http://localhost:8080.
+```sh
+docker build -t htmx-starter .
+docker run -p 8080:8080 htmx-starter
+# open http://localhost:8080
+```
 
-Deploy guide: (coming) on the Back4app blog.
+Deploy guide: see the Back4app blog post for deploying this repo on Back4app Containers (placeholder — link coming with the tutorial).
+
+Measurements for this exact commit are in `docs/evidence/local-measurements-2026-11-06.md`.
