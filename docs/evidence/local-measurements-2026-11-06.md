@@ -1,4 +1,4 @@
-# Local measurements — Preact (Vite) container starter — 2026-11-06
+# Local measurements — Lit (Vite) container starter — 2026-11-06
 
 ## Environment
 
@@ -31,24 +31,27 @@
 
 ## Scaffold
 
-    npm create vite@latest preact-container-starter -- --template preact
+    npm create vite@latest lit-container-starter -- --template lit
 
-Versions (package.json): preact ^11.1.1, vite ^8.3.6, @preact/preset-vite ^2.10.6.
+Versions (package.json): lit ^3.3.3, vite ^8.3.6.
 
 ## Numbers
 
 | Measurement | Command | Result |
 |---|---|---|
-| npm ci | `/usr/bin/time -p npm ci` | **1.38 s** (89 packages) |
-| npm run build | `/usr/bin/time -p npm run build` | **2.41 s** wall (Vite: "built in 473ms") |
-| dist size | `du -sk dist` | **80 KB** |
-| docker build | `/usr/bin/time -p docker build -t preact-container-starter .` | **10.00 s** (bases already pulled) |
-| image size | `docker images` | **76 MB** |
-| HTML document gzipped | `curl -s -H 'Accept-Encoding: gzip' -o /dev/null -w '%{size_download}' http://localhost:8491/` | **473 bytes** |
-| First-load JS gzipped | `/assets/index-e_QwmrLR.js` (only script referenced) | **7,335 bytes** (raw 17.97 kB) |
+| npm ci | `/usr/bin/time -p npm ci` | **1.46 s** (22 packages) |
+| npm run build | `/usr/bin/time -p npm run build` | **2.28 s** wall (Vite: "built in 479ms") |
+| dist size | `du -sk dist` | **84 KB** |
+| docker build | `/usr/bin/time -p docker build -t lit-container-starter .` | **8.01 s** (bases already pulled) |
+| image size | `docker images` | **76.1 MB** |
+| HTML document gzipped | `curl -s -H 'Accept-Encoding: gzip' -o /dev/null -w '%{size_download}' http://localhost:8491/` | **507 bytes** |
+| First-load JS gzipped | `/assets/index-DsTlOOtu.js` (only script referenced) | **8,763 bytes** (raw 26.13 kB) |
 
-With nginx's default `gzip_comp_level 1` the bundle transferred 7,941 bytes;
+With nginx's default `gzip_comp_level 1` the bundle transferred 9,759 bytes;
 nginx.conf sets `gzip_comp_level 6`.
 
-Verified: SPA fallback returns 200 on deep routes; `/assets/*` served with
+Note: the Lit template builds a library-style demo page (my-element web component);
+the SPA fallback still applies but Lit itself ships no router.
+
+Verified: fallback returns 200 on deep routes; `/assets/*` served with
 `Cache-Control: public, max-age=31536000, immutable`.

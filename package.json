@@ -1,5 +1,5 @@
 {
-  "name": "preact-container-starter",
+  "name": "lit-container-starter",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,10 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "preact": "^11.1.1"
+    "lit": "^3.3.3"
   },
   "devDependencies": {
-    "@preact/preset-vite": "^2.10.6",
     "vite": "^8.3.6"
   }
 }

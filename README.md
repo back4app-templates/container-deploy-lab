@@ -1,13 +1,13 @@
-# Preact (Vite) Container Starter
+# Lit (Vite) Container Starter
 
-The official Preact (Vite) starter, unchanged, plus a production-ready multi-stage Dockerfile
+The official Lit (Vite) starter, unchanged, plus a production-ready multi-stage Dockerfile
 (Node 22 build stage, nginx 1.27 serving the build on port 8080 with SPA fallback,
 gzip, and immutable caching for hashed assets).
 
 Run it locally:
 
-    docker build -t preact-container-starter .
-    docker run --rm -p 8080:8080 preact-container-starter
+    docker build -t lit-container-starter .
+    docker run --rm -p 8080:8080 lit-container-starter
 
 Then open http://localhost:8080.
 
